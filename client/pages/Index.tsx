@@ -44,7 +44,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative w-full h-[387px] mx-auto max-w-[1382px] mt-[94px] rounded-[10px] overflow-hidden">
+      <div className="relative w-full h-[387px] mx-auto max-w-[1382px] mt-[94px] mb-8 rounded-[10px] overflow-hidden px-4">
         <img 
           src="https://api.builder.io/api/v1/image/assets/TEMP/ebaa5de6aab3da2e3de2e92352eb52b61d28c798?width=2764"
           alt="Agricultural landscape" 
@@ -61,20 +61,42 @@ export default function Index() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="max-w-[1400px] mx-auto px-4 mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1400px] mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
         
         {/* Weather Forecast Section */}
         <div className="lg:col-span-1">
           <h2 className="text-xl font-medium text-black mb-8">Real Time Weather Forecast</h2>
-          <div className="w-full max-w-[340px] h-[182px] bg-gray-300 rounded-[10px] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-blue-600 flex items-center justify-center">
-              <div className="text-white text-center">
-                <div className="text-2xl font-bold">25°C</div>
-                <div className="text-sm">Partly Cloudy</div>
-                <div className="flex justify-center space-x-2 mt-2">
-                  <div className="text-xs">Mon 24°</div>
-                  <div className="text-xs">Tue 26°</div>
-                  <div className="text-xs">Wed 23°</div>
+          <div className="w-full max-w-[340px] h-[182px] bg-slate-600 rounded-[10px] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-500 to-slate-700 p-4">
+              <div className="text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-3xl font-bold">25°C</div>
+                  <div className="text-right">
+                    <div className="text-sm">Partly Cloudy</div>
+                    <div className="text-xs opacity-80">Updated 2 hrs ago</div>
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs mt-6">
+                  <div className="text-center">
+                    <div className="opacity-80">Mon</div>
+                    <div className="font-medium">24°</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="opacity-80">Tue</div>
+                    <div className="font-medium">26°</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="opacity-80">Wed</div>
+                    <div className="font-medium">23°</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="opacity-80">Thu</div>
+                    <div className="font-medium">27°</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="opacity-80">Fri</div>
+                    <div className="font-medium">25°</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -84,18 +106,18 @@ export default function Index() {
         {/* Government Schemes Section */}
         <div className="lg:col-span-1">
           <h2 className="text-xl font-medium text-black mb-8">Government Schemes</h2>
-          <div className="bg-white p-8 rounded-[10px] border border-gray-200">
-            <img 
+          <div className="bg-white rounded-[10px]">
+            <img
               src="https://api.builder.io/api/v1/image/assets/TEMP/4640d0d4c71b7b376a1b13431fb053ba8fdbb94d?width=540"
               alt="Government schemes illustration"
-              className="w-full h-[171px] object-cover rounded-[20px] mb-6"
+              className="w-full h-[171px] object-cover rounded-[20px] mb-8"
             />
-            <div className="space-y-3">
+            <div className="px-8 pb-8 space-y-4">
               {governmentSchemes.map((scheme, index) => (
-                <a 
+                <a
                   key={index}
-                  href="#" 
-                  className="block text-agriculture-scheme-blue text-base font-medium underline hover:no-underline transition-all"
+                  href="#"
+                  className="block text-blue-600 text-base font-medium underline hover:no-underline transition-all"
                 >
                   {scheme}
                 </a>
