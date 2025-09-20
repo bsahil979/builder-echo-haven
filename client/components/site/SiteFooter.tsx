@@ -4,7 +4,7 @@ export default function SiteFooter() {
       <div className="max-w-screen-lg mx-auto px-4 py-8">
         <nav className="flex flex-wrap justify-center gap-6 text-xs text-slate-600">
           <a href="#" className="hover:text-emerald-700">Home</a>
-          <a href="#marketplace" className="hover:text-emerald-700">Marketplace</a>
+          <Link to="/marketplace" className="hover:text-emerald-700">Marketplace</Link>
           <a href="#weather" className="hover:text-emerald-700">Weather Forecast</a>
           <a href="#guidance" className="hover:text-emerald-700">Crop Guidance</a>
           <a href="#" className="hover:text-emerald-700">Login/Signup</a>
