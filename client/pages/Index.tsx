@@ -12,17 +12,17 @@ export default function Index() {
     {
       title: "Sustainable Farming Practices",
       desc: "Learn about eco‑friendly techniques to improve yield and protect the environment.",
-      image: "https://api.builder.io/api/v1/image/assets/TEMP/5e3e2903dff748faaf38b9644d6e540d69e35fff?width=506",
+      image: "https://cdn.builder.io/api/v1/image/assets%2F1285a0f42819424f8631cc89786bc789%2F4cd6870aca744b9fb3a3b9496edc4185",
     },
     {
       title: "Pest Control Strategies",
       desc: "Effective and safe methods for managing pests in your crops.",
-      image: "https://api.builder.io/api/v1/image/assets/TEMP/cef83c7df68a0a281b66c3830af56cf7601ccfce?width=494",
+      image: "https://cdn.builder.io/api/v1/image/assets%2F1285a0f42819424f8631cc89786bc789%2F62d108b7d69f44208b5ceb4fa641a5db",
     },
     {
       title: "Water Conservation Tips",
       desc: "Conserve water in your farming operations with proven practical ideas.",
-      image: "https://api.builder.io/api/v1/image/assets/TEMP/5e3e2903dff748faaf38b9644d6e540d69e35fff?width=506",
+      image: "https://cdn.builder.io/api/v1/image/assets%2F1285a0f42819424f8631cc89786bc789%2F2a2e46b2656e4c328f8e8b6ec0f0fa6d",
     },
   ];
 
