@@ -42,6 +42,11 @@
 
     --radius: 0.5rem;
 
+    /* Agriculture theme colors */
+    --agriculture-light-pink: 244 233 233;
+    --agriculture-medium-pink: 237 214 214;
+    --agriculture-scheme-blue: 40 109 200;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
