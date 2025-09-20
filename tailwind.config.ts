@@ -14,6 +14,11 @@ export default {
     },
     extend: {
       colors: {
+        'agriculture': {
+          'light-pink': '#F4E9E9',
+          'medium-pink': '#EDD6D6',
+          'scheme-blue': '#286DC8',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
