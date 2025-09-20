@@ -14,7 +14,7 @@ export default function SiteHeader() {
           <a href="#guidance" className="hover:text-emerald-700 transition-colors">Guidance</a>
         </nav>
         <div className="flex items-center gap-3">
-          <a href="#" className="hidden sm:inline-flex text-slate-700 hover:text-emerald-700 text-sm font-medium">Sign in</a>
+          <Link to="/login" className="hidden sm:inline-flex text-slate-700 hover:text-emerald-700 text-sm font-medium">Sign in</Link>
           <a href="#marketplace" className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">Get Started</a>
         </div>
       </div>
