@@ -44,12 +44,13 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative w-full h-[387px] mx-auto max-w-[1382px] mt-[94px] mb-8 rounded-[10px] overflow-hidden px-4">
-        <img 
+      <div className="relative w-full h-[420px] mx-auto max-w-screen-2xl mt-8 mb-8 rounded-2xl overflow-hidden">
+        <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/ebaa5de6aab3da2e3de2e92352eb52b61d28c798?width=2764"
-          alt="Agricultural landscape" 
+          alt="Agricultural landscape"
           className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
           <h1 className="text-6xl md:text-8xl lg:text-[96px] font-normal text-white leading-tight mb-4">
             HARITKRANTI
@@ -61,10 +62,10 @@ export default function Index() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="max-w-[1400px] mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
         
         {/* Weather Forecast Section */}
-        <div className="lg:col-span-1">
+        <div id="weather" className="lg:col-span-1">
           <h2 className="text-xl font-medium text-black mb-8">Real Time Weather Forecast</h2>
           <div className="w-full max-w-[340px] h-[182px] bg-slate-600 rounded-[10px] relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-500 to-slate-700 p-4">
@@ -104,7 +105,7 @@ export default function Index() {
         </div>
 
         {/* Government Schemes Section */}
-        <div className="lg:col-span-1">
+        <div id="schemes" className="lg:col-span-1">
           <h2 className="text-xl font-medium text-black mb-8">Government Schemes</h2>
           <div className="bg-white rounded-[10px]">
             <img
@@ -127,9 +128,9 @@ export default function Index() {
         </div>
 
         {/* Marketplace Section */}
-        <div className="lg:col-span-1">
+        <div id="marketplace" className="lg:col-span-1">
           <h2 className="text-xl font-medium text-black mb-8">Marketplace</h2>
-          <div className="border border-black rounded-[10px] p-6 bg-white">
+          <div className="rounded-2xl p-6 bg-white shadow-lg ring-1 ring-black/5">
             <div className="grid grid-cols-3 gap-4">
               {marketplaceItems.map((item, index) => (
                 <div key={index} className="text-center">
@@ -153,7 +154,7 @@ export default function Index() {
       </div>
 
       {/* Farmer Assistance Section */}
-      <div className="max-w-[1400px] mx-auto px-4 mt-16 mb-16">
+      <div id="guidance" className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-16">
         <h2 className="text-xl font-medium text-black mb-8">Farmer Assistance and Guidance</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-[20px] overflow-hidden">
