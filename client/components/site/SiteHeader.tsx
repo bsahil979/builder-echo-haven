@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur border-b border-slate-200">
+    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur border-b border-slate-100">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-emerald-700 text-xl font-semibold tracking-wide">HARITKRANTI</span>
+          <span className="text-slate-900 text-base font-semibold tracking-wide">HaritKranti</span>
         </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
+        <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-700">
           <a href="#weather" className="hover:text-emerald-700 transition-colors">Weather</a>
           <a href="#schemes" className="hover:text-emerald-700 transition-colors">Schemes</a>
           <a href="#marketplace" className="hover:text-emerald-700 transition-colors">Marketplace</a>
