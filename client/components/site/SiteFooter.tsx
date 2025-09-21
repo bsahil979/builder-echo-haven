@@ -7,9 +7,9 @@ export default function SiteFooter() {
         <nav className="flex flex-wrap justify-center gap-6 text-xs text-slate-600">
           <a href="#" className="hover:text-emerald-700">Home</a>
           <Link to="/marketplace" className="hover:text-emerald-700">Marketplace</Link>
-          <a href="#weather" className="hover:text-emerald-700">Weather Forecast</a>
+          <Link to="/weather" className="hover:text-emerald-700">Weather Forecast</Link>
           <Link to="/guidance" className="hover:text-emerald-700">Crop Guidance</Link>
-          <a href="#" className="hover:text-emerald-700">Login/Signup</a>
+          <Link to="/recommendations" className="hover:text-emerald-700">Recommendations</Link>
         </nav>
         <p className="mt-6 text-center text-[11px] text-slate-500">© {new Date().getFullYear()} HaritKranti. All rights reserved.</p>
       </div>

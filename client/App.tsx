@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Marketplace from "./pages/Marketplace";
 import Guidance from "./pages/Guidance";
+import Weather from "./pages/Weather";
+import Recommendations from "./pages/Recommendations";
 import NotFound from "./pages/NotFound";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/guidance" element={<Guidance />} />
+          <Route path="/weather" element={<Weather />} />
+          <Route path="/recommendations" element={<Recommendations />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
