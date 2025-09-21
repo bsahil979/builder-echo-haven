@@ -11,7 +11,7 @@ export default function SiteHeader() {
           <a href="#weather" className="hover:text-emerald-700 transition-colors">Weather</a>
           <a href="#schemes" className="hover:text-emerald-700 transition-colors">Schemes</a>
           <Link to="/marketplace" className="hover:text-emerald-700 transition-colors">Marketplace</Link>
-          <a href="#guidance" className="hover:text-emerald-700 transition-colors">Guidance</a>
+          <Link to="/guidance" className="hover:text-emerald-700 transition-colors">Guidance</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Link to="/login" className="hidden sm:inline-flex text-slate-700 hover:text-emerald-700 text-sm font-medium">Sign in</Link>
