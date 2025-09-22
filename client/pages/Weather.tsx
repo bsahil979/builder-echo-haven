@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
 } from "recharts";
 
 interface Geo {
@@ -44,6 +45,7 @@ export default function Weather() {
   const [alerts, setAlerts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [simple, setSimple] = useState(true);
 
   const fetchGeo = async (name: string) => {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
@@ -56,7 +58,9 @@ export default function Weather() {
     });
     clearTimeout(timer);
     if (!res.ok) throw new Error(`Location lookup failed (HTTP ${res.status})`);
-    const json = await res.json().catch(() => { throw new Error("Invalid location response"); });
+    const json = await res.json().catch(() => {
+      throw new Error("Invalid location response");
+    });
     if (!json?.results?.length) throw new Error("Location not found");
     const g = json.results[0];
     return {
@@ -76,7 +80,9 @@ export default function Weather() {
     });
     clearTimeout(timer);
     if (!res.ok) throw new Error(`Forecast fetch failed (HTTP ${res.status})`);
-    const j = await res.json().catch(() => { throw new Error("Invalid forecast response"); });
+    const j = await res.json().catch(() => {
+      throw new Error("Invalid forecast response");
+    });
 
     const d: ForecastDay[] = j.daily.time.map((t: string, i: number) => ({
       date: t,
@@ -86,7 +92,9 @@ export default function Weather() {
       code: j.daily.weathercode[i],
     }));
     setDays(d);
-    setCurrent(j.current_weather ? { temp: j.current_weather.temperature, wind: j.current_weather.windspeed } : null);
+    setCurrent(
+      j.current_weather ? { temp: j.current_weather.temperature, wind: j.current_weather.windspeed } : null
+    );
     setSunrise(j.daily?.sunrise?.[0] ?? null);
     setSunset(j.daily?.sunset?.[0] ?? null);
 
@@ -149,7 +157,9 @@ export default function Weather() {
           });
           clearTimeout(timer);
           if (!res.ok) throw new Error(`Reverse geocoding failed (HTTP ${res.status})`);
-          const j = await res.json().catch(() => { throw new Error("Invalid reverse geocoding response"); });
+          const j = await res.json().catch(() => {
+            throw new Error("Invalid reverse geocoding response");
+          });
           const label = j?.results?.[0]?.name || "My location";
           const g: Geo = { name: label, latitude, longitude };
           setGeo(g);
@@ -179,10 +189,39 @@ export default function Weather() {
     () => new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }),
     []
   );
-  const hourFmt = useMemo(
-    () => new Intl.DateTimeFormat(undefined, { hour: "numeric" }),
-    []
-  );
+  const hourFmt = useMemo(() => new Intl.DateTimeFormat(undefined, { hour: "numeric" }), []);
+
+  // Simple language summaries from hourly data
+  const summaries = useMemo(() => {
+    if (!hourly.length) return null;
+    const withIndex = hourly.map((p, i) => ({ ...p, i }));
+    const maxTemp = withIndex.reduce((a, b) => (b.temp > a.temp ? b : a));
+    const minTemp = withIndex.reduce((a, b) => (b.temp < a.temp ? b : a));
+    const maxRain = withIndex.reduce((a, b) => ((b.precipProb ?? 0) > (a.precipProb ?? 0) ? b : a));
+    const maxWind = withIndex.reduce((a, b) => (b.wind > a.wind ? b : a));
+    const maxGust = withIndex.reduce((a, b) => ((b.gust ?? 0) > (a.gust ?? 0) ? b : a));
+    return {
+      hottest: `${Math.round(maxTemp.temp)}° around ${hourFmt.format(new Date(maxTemp.time))}`,
+      coolest: `${Math.round(minTemp.temp)}° around ${hourFmt.format(new Date(minTemp.time))}`,
+      rain: `${Math.round(maxRain.precipProb ?? 0)}% chance around ${hourFmt.format(new Date(maxRain.time))}`,
+      wind: `${Math.round(maxWind.wind)} km/h around ${hourFmt.format(new Date(maxWind.time))}`,
+      gust: `${Math.round(maxGust.gust ?? 0)} km/h gusts around ${hourFmt.format(new Date(maxGust.time))}`,
+    };
+  }, [hourly, hourFmt]);
+
+  const SimpleTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null;
+    const p = Object.fromEntries(payload.map((x: any) => [x.dataKey, x.value]));
+    return (
+      <div className="rounded-md bg-white/95 p-2 shadow ring-1 ring-slate-200 text-xs">
+        <div><strong>Time:</strong> {payload[0]?.payload?.x}</div>
+        {p.temp !== undefined && <div>Temperature: {Math.round(p.temp)}°C</div>}
+        {p.precip !== undefined && <div>Chance of rain: {Math.round(p.precip)}%</div>}
+        {p.wind !== undefined && <div>Wind: {Math.round(p.wind)} km/h</div>}
+        {p.gust !== undefined && <div>Gusts: {Math.round(p.gust)} km/h</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -198,6 +237,9 @@ export default function Weather() {
             />
             <button onClick={() => lookup(place)} className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Search</button>
             <button onClick={useMyLocation} className="rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Use my location</button>
+            <button onClick={() => setSimple((s) => !s)} className="rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              {simple ? "Show charts" : "Simple view"}
+            </button>
           </div>
         </div>
 
@@ -219,7 +261,7 @@ export default function Weather() {
           </div>
         </div>
 
-        {/* Current conditions + charts */}
+        {/* Current conditions + summaries or charts */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-1">
             <p className="text-sm text-slate-500">Location</p>
@@ -234,53 +276,88 @@ export default function Weather() {
                 {hourly[0] && <div className="text-sm text-slate-700">Humidity {Math.round(hourly[0].humidity)}%</div>}
               </div>
             </div>
+            {simple && summaries && (
+              <div className="mt-4 grid gap-2 text-xs text-slate-700">
+                <div className="rounded bg-slate-50 px-3 py-2">Hottest today: <strong>{summaries.hottest}</strong></div>
+                <div className="rounded bg-slate-50 px-3 py-2">Coolest today: <strong>{summaries.coolest}</strong></div>
+                <div className="rounded bg-slate-50 px-3 py-2">Highest chance of rain: <strong>{summaries.rain}</strong> (blue line)</div>
+                <div className="rounded bg-slate-50 px-3 py-2">Strongest wind: <strong>{summaries.wind}</strong></div>
+                <div className="rounded bg-slate-50 px-3 py-2">Strongest gusts: <strong>{summaries.gust}</strong></div>
+              </div>
+            )}
           </div>
 
-          {/* Next 24 hours: temperature & precipitation probability */}
+          {/* Next 24 hours (Temp / Precip) */}
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-2">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-800">Next 24 hours (Temp / Precip%)</p>
-              {loading && <span className="text-xs text-slate-500">Loading…</span>}
+            <div className="mb-2">
+              <p className="text-sm font-medium text-slate-800">Next 24 hours — Temperature and chance of rain</p>
+              <p className="text-xs text-slate-500">Green = temperature (°C). Blue = chance of rain (%). Time shown along the bottom.</p>
             </div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), temp: h.temp, precip: h.precipProb ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
-                  <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
-                  <XAxis dataKey="x" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} domain={[0, 100]} />
-                  <Tooltip />
-                  <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#059669" strokeWidth={2} dot={false} name="Temp (°C)" />
-                  <Line yAxisId="right" type="monotone" dataKey="precip" stroke="#60a5fa" strokeWidth={2} dot={false} name="Precip %" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {!simple && (
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), temp: h.temp, precip: h.precipProb ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                    <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
+                    <XAxis dataKey="x" tick={{ fontSize: 12 }} label={{ value: "Time", position: "insideBottom", offset: -5 }} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={["auto", "auto"]} label={{ value: "°C", angle: -90, position: "insideLeft" }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} domain={[0, 100]} label={{ value: "%", angle: -90, position: "insideRight" }} />
+                    <Tooltip content={<SimpleTooltip />} />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#059669" strokeWidth={3} dot={false} name="Temperature (°C)" />
+                    <Line yAxisId="right" type="monotone" dataKey="precip" stroke="#60a5fa" strokeWidth={3} dot={false} name="Chance of rain (%)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            {simple && summaries && (
+              <ul className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2 text-xs text-slate-700">
+                <li className="rounded-lg border border-slate-200 p-3">Highest rain chance: <strong>{summaries.rain}</strong></li>
+                <li className="rounded-lg border border-slate-200 p-3">Hottest: <strong>{summaries.hottest}</strong></li>
+                <li className="rounded-lg border border-slate-200 p-3">Coolest: <strong>{summaries.coolest}</strong></li>
+                <li className="rounded-lg border border-slate-200 p-3">Wind peak: <strong>{summaries.wind}</strong></li>
+              </ul>
+            )}
           </div>
         </div>
 
         {/* Wind & Gusts */}
         <div className="mt-6 rounded-2xl bg-white shadow ring-1 ring-black/5 p-5">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-2">
             <p className="text-sm font-medium text-slate-800">Wind and Gusts (next 24 hours)</p>
-            {loading && <span className="text-xs text-slate-500">Loading…</span>}
+            <p className="text-xs text-slate-500">Teal = steady wind. Orange = stronger bursts (gusts). Higher numbers mean stronger wind.</p>
           </div>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), wind: h.wind, gust: h.gust ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
-                <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
-                <XAxis dataKey="x" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="wind" stroke="#0ea5a7" strokeWidth={2} dot={false} name="Wind (km/h)" />
-                <Line type="monotone" dataKey="gust" stroke="#f59e0b" strokeWidth={2} dot={false} name="Gust (km/h)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {!simple ? (
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), wind: h.wind, gust: h.gust ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                  <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
+                  <XAxis dataKey="x" tick={{ fontSize: 12 }} label={{ value: "Time", position: "insideBottom", offset: -5 }} />
+                  <YAxis tick={{ fontSize: 12 }} domain={["auto", "auto"]} label={{ value: "km/h", angle: -90, position: "insideLeft" }} />
+                  <Tooltip content={<SimpleTooltip />} />
+                  <Legend />
+                  <Line type="monotone" dataKey="wind" stroke="#0ea5a7" strokeWidth={3} dot={false} name="Wind (km/h)" />
+                  <Line type="monotone" dataKey="gust" stroke="#f59e0b" strokeWidth={3} dot={false} name="Gusts (km/h)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            summaries && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2 text-xs text-slate-700">
+                <div className="rounded-lg border border-slate-200 p-3">Strongest wind: <strong>{summaries.wind}</strong></div>
+                <div className="rounded-lg border border-slate-200 p-3">Strongest gusts: <strong>{summaries.gust}</strong></div>
+                <div className="rounded-lg border border-slate-200 p-3">Tip: If gusts are high, secure light objects and avoid spraying.</div>
+              </div>
+            )
+          )}
         </div>
 
         {/* 7 day forecast */}
         <div className="mt-6">
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5">
+            <div className="mb-2">
+              <p className="text-sm font-medium text-slate-800">Next 7 days</p>
+              <p className="text-xs text-slate-500">Each box shows daytime high and nighttime low. "Rain" is the total expected for that day.</p>
+            </div>
             <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
               {days.map((d) => (
                 <div key={d.date} className="rounded-lg border border-slate-200 p-3 text-center">
