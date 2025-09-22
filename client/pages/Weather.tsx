@@ -30,6 +30,7 @@ interface HourPoint {
   humidity: number;
   precipProb: number | null;
   wind: number;
+  gust: number | null;
 }
 
 export default function Weather() {
@@ -40,6 +41,7 @@ export default function Weather() {
   const [current, setCurrent] = useState<{ temp: number; wind: number } | null>(null);
   const [sunrise, setSunrise] = useState<string | null>(null);
   const [sunset, setSunset] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +62,7 @@ export default function Weather() {
   };
 
   const fetchForecast = async (g: Geo) => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,windspeed_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset&current_weather=true&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,windspeed_10m,windgusts_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset&current_weather=true&timezone=auto`;
     const res = await fetch(url);
     const j = await res.json();
 
@@ -89,9 +91,18 @@ export default function Weather() {
         humidity: j.hourly.relativehumidity_2m[i],
         precipProb: j.hourly.precipitation_probability?.[i] ?? null,
         wind: j.hourly.windspeed_10m[i],
+        gust: j.hourly.windgusts_10m?.[i] ?? null,
       });
     }
     setHourly(points);
+
+    const derived: string[] = [];
+    if (d.some((x) => x.precip >= 20)) derived.push("Heavy rain expected (>20mm) in the next 7 days");
+    if (d.some((x) => x.tmax >= 40)) derived.push("Heatwave risk: max temp ≥ 40°C");
+    if (d.some((x) => x.tmin <= 0)) derived.push("Frost risk: min temp ≤ 0°C");
+    const maxGust = Math.max(...(j.hourly.windgusts_10m?.slice(idx, sliceEnd) ?? [0]));
+    if (maxGust >= 60) derived.push(`High winds expected: gusts up to ${Math.round(maxGust)} km/h`);
+    setAlerts(derived);
   };
 
   const lookup = async (n: string) => {
@@ -173,7 +184,23 @@ export default function Weather() {
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-        {/* Current conditions */}
+        {/* Alerts */}
+        <div className="mt-6">
+          <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5">
+            <p className="text-sm font-medium text-slate-800">Weather alerts</p>
+            {alerts.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-500">No significant alerts for your area in the next few days.</p>
+            ) : (
+              <ul className="mt-2 grid gap-2">
+                {alerts.map((a, i) => (
+                  <li key={i} className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">{a}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Current conditions + charts */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-1">
             <p className="text-sm text-slate-500">Location</p>
@@ -190,19 +217,15 @@ export default function Weather() {
             </div>
           </div>
 
-          {/* Next 24 hours chart */}
+          {/* Next 24 hours: temperature & precipitation probability */}
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-2">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-800">Next 24 hours</p>
+              <p className="text-sm font-medium text-slate-800">Next 24 hours (Temp / Precip%)</p>
               {loading && <span className="text-xs text-slate-500">Loading…</span>}
             </div>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={hourly.map((h) => ({
-                  x: hourFmt.format(new Date(h.time)),
-                  temp: h.temp,
-                  precip: h.precipProb ?? 0,
-                }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), temp: h.temp, precip: h.precipProb ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
                   <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
                   <XAxis dataKey="x" tick={{ fontSize: 12 }} />
                   <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
@@ -213,6 +236,26 @@ export default function Weather() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        </div>
+
+        {/* Wind & Gusts */}
+        <div className="mt-6 rounded-2xl bg-white shadow ring-1 ring-black/5 p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-800">Wind and Gusts (next 24 hours)</p>
+            {loading && <span className="text-xs text-slate-500">Loading…</span>}
+          </div>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={hourly.map((h) => ({ x: hourFmt.format(new Date(h.time)), wind: h.wind, gust: h.gust ?? 0 }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
+                <XAxis dataKey="x" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="wind" stroke="#0ea5a7" strokeWidth={2} dot={false} name="Wind (km/h)" />
+                <Line type="monotone" dataKey="gust" stroke="#f59e0b" strokeWidth={2} dot={false} name="Gust (km/h)" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
