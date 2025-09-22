@@ -1,4 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  CartesianGrid,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 interface Geo {
   name: string;
@@ -15,10 +24,22 @@ interface ForecastDay {
   code: number;
 }
 
+interface HourPoint {
+  time: string;
+  temp: number;
+  humidity: number;
+  precipProb: number | null;
+  wind: number;
+}
+
 export default function Weather() {
   const [place, setPlace] = useState("Mumbai");
   const [geo, setGeo] = useState<Geo | null>(null);
   const [days, setDays] = useState<ForecastDay[]>([]);
+  const [hourly, setHourly] = useState<HourPoint[]>([]);
+  const [current, setCurrent] = useState<{ temp: number; wind: number } | null>(null);
+  const [sunrise, setSunrise] = useState<string | null>(null);
+  const [sunset, setSunset] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,9 +60,10 @@ export default function Weather() {
   };
 
   const fetchForecast = async (g: Geo) => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&current_weather=true&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,windspeed_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset&current_weather=true&timezone=auto`;
     const res = await fetch(url);
     const j = await res.json();
+
     const d: ForecastDay[] = j.daily.time.map((t: string, i: number) => ({
       date: t,
       tmax: j.daily.temperature_2m_max[i],
@@ -50,6 +72,26 @@ export default function Weather() {
       code: j.daily.weathercode[i],
     }));
     setDays(d);
+    setCurrent(j.current_weather ? { temp: j.current_weather.temperature, wind: j.current_weather.windspeed } : null);
+    setSunrise(j.daily?.sunrise?.[0] ?? null);
+    setSunset(j.daily?.sunset?.[0] ?? null);
+
+    const now = new Date();
+    const times: string[] = j.hourly.time;
+    let idx = times.findIndex((t: string) => new Date(t) >= now);
+    if (idx === -1) idx = 0;
+    const sliceEnd = Math.min(idx + 24, times.length);
+    const points: HourPoint[] = [];
+    for (let i = idx; i < sliceEnd; i++) {
+      points.push({
+        time: times[i],
+        temp: j.hourly.temperature_2m[i],
+        humidity: j.hourly.relativehumidity_2m[i],
+        precipProb: j.hourly.precipitation_probability?.[i] ?? null,
+        wind: j.hourly.windspeed_10m[i],
+      });
+    }
+    setHourly(points);
   };
 
   const lookup = async (n: string) => {
@@ -82,6 +124,7 @@ export default function Weather() {
           const label = j?.results?.[0]?.name || "My location";
           const g: Geo = { name: label, latitude, longitude };
           setGeo(g);
+          setPlace(label);
           await fetchForecast(g);
         } catch (e: any) {
           setError("Failed to reverse geocode");
@@ -97,12 +140,19 @@ export default function Weather() {
   };
 
   useEffect(() => {
-    lookup(place);
+    // Try to use user's location first
+    useMyLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const formatter = useMemo(() =>
-    new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }), []);
+  const dateFmt = useMemo(
+    () => new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }),
+    []
+  );
+  const hourFmt = useMemo(
+    () => new Intl.DateTimeFormat(undefined, { hour: "numeric" }),
+    []
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -123,19 +173,56 @@ export default function Weather() {
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
+        {/* Current conditions */}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-1">
+            <p className="text-sm text-slate-500">Location</p>
+            <p className="text-base font-medium text-slate-900">{geo ? `${geo.name}${geo.country ? ", " + geo.country : ""}` : "--"}</p>
+            <div className="mt-4 flex items-end gap-6">
+              <div>
+                <div className="text-4xl font-bold text-slate-900">{current ? Math.round(current.temp) : "--"}°</div>
+                <div className="text-xs text-slate-500">Sunrise {sunrise ? new Date(sunrise).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--"} · Sunset {sunset ? new Date(sunset).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--"}</div>
+              </div>
+              <div className="ml-auto">
+                <div className="text-sm text-slate-700">Wind {current ? Math.round(current.wind) : "--"} km/h</div>
+                {hourly[0] && <div className="text-sm text-slate-700">Humidity {Math.round(hourly[0].humidity)}%</div>}
+              </div>
+            </div>
+          </div>
+
+          {/* Next 24 hours chart */}
+          <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5 lg:col-span-2">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-800">Next 24 hours</p>
+              {loading && <span className="text-xs text-slate-500">Loading…</span>}
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={hourly.map((h) => ({
+                  x: hourFmt.format(new Date(h.time)),
+                  temp: h.temp,
+                  precip: h.precipProb ?? 0,
+                }))} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                  <CartesianGrid stroke="#eef2f7" strokeDasharray="3 3" />
+                  <XAxis dataKey="x" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} domain={[0, 100]} />
+                  <Tooltip />
+                  <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#059669" strokeWidth={2} dot={false} name="Temp (°C)" />
+                  <Line yAxisId="right" type="monotone" dataKey="precip" stroke="#60a5fa" strokeWidth={2} dot={false} name="Precip %" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* 7 day forecast */}
         <div className="mt-6">
           <div className="rounded-2xl bg-white shadow ring-1 ring-black/5 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Location</p>
-                <p className="text-base font-medium text-slate-900">{geo ? `${geo.name}${geo.country ? ", " + geo.country : ""}` : "--"}</p>
-              </div>
-              {loading && <span className="text-sm text-slate-500">Loading…</span>}
-            </div>
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
               {days.map((d) => (
                 <div key={d.date} className="rounded-lg border border-slate-200 p-3 text-center">
-                  <div className="text-xs text-slate-500">{formatter.format(new Date(d.date))}</div>
+                  <div className="text-xs text-slate-500">{dateFmt.format(new Date(d.date))}</div>
                   <div className="mt-2 text-lg font-semibold text-slate-900">{Math.round(d.tmax)}° / {Math.round(d.tmin)}°</div>
                   <div className="mt-1 text-xs text-slate-500">Rain {Math.round(d.precip)}mm</div>
                 </div>
