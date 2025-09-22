@@ -49,8 +49,14 @@ export default function Weather() {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
       name
     )}&count=1&language=en&format=json`;
-    const res = await fetch(url);
-    const json = await res.json();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } }).catch(() => {
+      throw new Error("Network error while searching location");
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Location lookup failed (HTTP ${res.status})`);
+    const json = await res.json().catch(() => { throw new Error("Invalid location response"); });
     if (!json?.results?.length) throw new Error("Location not found");
     const g = json.results[0];
     return {
@@ -63,8 +69,14 @@ export default function Weather() {
 
   const fetchForecast = async (g: Geo) => {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,windspeed_10m,windgusts_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset&current_weather=true&timezone=auto`;
-    const res = await fetch(url);
-    const j = await res.json();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } }).catch(() => {
+      throw new Error("Network error while fetching forecast");
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`Forecast fetch failed (HTTP ${res.status})`);
+    const j = await res.json().catch(() => { throw new Error("Invalid forecast response"); });
 
     const d: ForecastDay[] = j.daily.time.map((t: string, i: number) => ({
       date: t,
@@ -130,8 +142,14 @@ export default function Weather() {
         try {
           const { latitude, longitude } = pos.coords;
           const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&language=en&format=json`;
-          const res = await fetch(url);
-          const j = await res.json();
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 12000);
+          const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } }).catch(() => {
+            throw new Error("Network error while reverse geocoding");
+          });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error(`Reverse geocoding failed (HTTP ${res.status})`);
+          const j = await res.json().catch(() => { throw new Error("Invalid reverse geocoding response"); });
           const label = j?.results?.[0]?.name || "My location";
           const g: Geo = { name: label, latitude, longitude };
           setGeo(g);
@@ -143,8 +161,9 @@ export default function Weather() {
           setLoading(false);
         }
       },
-      () => {
-        setError("Location permission denied");
+      (err) => {
+        console.warn("Geolocation error", err);
+        setError("Location permission denied or unavailable");
         setLoading(false);
       }
     );
