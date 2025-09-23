@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Marketplace from "./pages/Marketplace";
 import Guidance from "./pages/Guidance";
+import Schemes from "./pages/Schemes";
 import Weather from "./pages/Weather";
 import Recommendations from "./pages/Recommendations";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/guidance" element={<Guidance />} />
+          <Route path="/schemes" element={<Schemes />} />
           <Route path="/weather" element={<Weather />} />
           <Route path="/recommendations" element={<Recommendations />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
