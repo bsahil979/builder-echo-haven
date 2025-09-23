@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function Index() {
+  const { t } = useI18n();
   const marketplaceItems = [
     { name: "Organic Tomatoes", price: "₹2.5/kg", image: "https://api.builder.io/api/v1/image/assets/TEMP/87dbfd14ab7d02cbc5242a5522ecbd9c4f130182?width=598" },
     { name: "Organic Wheat", price: "₹2.9/kg", image: "https://api.builder.io/api/v1/image/assets/TEMP/6a884d42985542987f4b2464063e7ef3b705aa05?width=518" },
@@ -39,15 +41,15 @@ export default function Index() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/60" />
         <div className="absolute inset-0 px-6 md:px-10 flex flex-col justify-center">
-          <h1 className="max-w-xl text-white text-2xl md:text-4xl lg:text-[32px] font-extrabold tracking-tight drop-shadow">Empowering Farmers for a Greener Tomorrow</h1>
-          <a href="#marketplace" className="mt-6 inline-flex w-fit rounded-md bg-emerald-600 px-5 py-2.5 text-white font-semibold shadow hover:bg-emerald-700">Get Started</a>
+          <h1 className="max-w-xl text-white text-2xl md:text-4xl lg:text-[32px] font-extrabold tracking-tight drop-shadow">{t("home.hero")}</h1>
+          <a href="#marketplace" className="mt-6 inline-flex w-fit rounded-md bg-emerald-600 px-5 py-2.5 text-white font-semibold shadow hover:bg-emerald-700">{t("cta.getStarted")}</a>
         </div>
       </section>
 
       {/* Weather summary */}
       <section id="weather" className="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-0 mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         <div className="md:col-span-2">
-          <h2 className="text-sm font-semibold text-slate-700">Real-Time Weather Forecast</h2>
+          <h2 className="text-sm font-semibold text-slate-700">{t("home.weather")}</h2>
           <p className="mt-2 text-sm text-slate-600">Sunny with a chance of showers</p>
           <p className="text-xs text-slate-500">Location: Mumbai, India | Temperature: 25°C</p>
         </div>
@@ -62,7 +64,7 @@ export default function Index() {
 
       {/* Marketplace */}
       <section id="marketplace" className="max-w-screen-lg mx-auto mt-10">
-        <h2 className="px-4 sm:px-6 lg:px-0 text-sm font-semibold text-slate-700">Marketplace</h2>
+        <h2 className="px-4 sm:px-6 lg:px-0 text-sm font-semibold text-slate-700">{t("home.marketplace")}</h2>
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 px-4 sm:px-6 lg:px-0">
           {marketplaceItems.map((item) => (
             <Link to="/marketplace" key={item.name} className="group block overflow-hidden rounded-xl bg-white shadow ring-1 ring-black/5 focus:outline-none focus:ring-2 focus:ring-emerald-600">
@@ -80,7 +82,7 @@ export default function Index() {
 
       {/* Crop Guidance */}
       <section id="guidance" className="max-w-screen-lg mx-auto mt-10 px-4 sm:px-6 lg:px-0">
-        <h2 className="text-sm font-semibold text-slate-700">Crop Guidance</h2>
+        <h2 className="text-sm font-semibold text-slate-700">{t("home.guidance")}</h2>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {guidance.map((g) => (
             <article key={g.title} className="overflow-hidden rounded-xl bg-white shadow ring-1 ring-black/5">

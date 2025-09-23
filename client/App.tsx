@@ -16,6 +16,7 @@ import Recommendations from "./pages/Recommendations";
 import NotFound from "./pages/NotFound";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
+import { I18nProvider } from "@/i18n/I18nProvider";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +25,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <I18nProvider>
+        <BrowserRouter>
         <SiteHeader />
         <Routes>
           <Route path="/" element={<Index />} />
@@ -38,7 +40,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <SiteFooter />
-      </BrowserRouter>
+        </BrowserRouter>
+      </I18nProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
