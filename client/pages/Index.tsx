@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Index() {
   const marketplaceItems = [
     { name: "Organic Tomatoes", price: "₹2.5/kg", image: "https://api.builder.io/api/v1/image/assets/TEMP/87dbfd14ab7d02cbc5242a5522ecbd9c4f130182?width=598" },
@@ -63,7 +65,7 @@ export default function Index() {
         <h2 className="px-4 sm:px-6 lg:px-0 text-sm font-semibold text-slate-700">Marketplace</h2>
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 px-4 sm:px-6 lg:px-0">
           {marketplaceItems.map((item) => (
-            <div key={item.name} className="group overflow-hidden rounded-xl bg-white shadow ring-1 ring-black/5">
+            <Link to="/marketplace" key={item.name} className="group block overflow-hidden rounded-xl bg-white shadow ring-1 ring-black/5 focus:outline-none focus:ring-2 focus:ring-emerald-600">
               <div className="h-28 w-full overflow-hidden">
                 <img src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               </div>
@@ -71,7 +73,7 @@ export default function Index() {
                 <p className="text-sm font-medium text-slate-800 leading-tight">{item.name}</p>
                 <p className="text-xs text-slate-500 mt-1">{item.price}</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
