@@ -9,7 +9,7 @@ export default function SiteHeader() {
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-700">
           <Link to="/weather" className="hover:text-emerald-700 transition-colors">Weather</Link>
-          <a href="#schemes" className="hover:text-emerald-700 transition-colors">Schemes</a>
+          <Link to="/schemes" className="hover:text-emerald-700 transition-colors">Schemes</Link>
           <Link to="/marketplace" className="hover:text-emerald-700 transition-colors">Marketplace</Link>
           <Link to="/guidance" className="hover:text-emerald-700 transition-colors">Guidance</Link>
           <Link to="/recommendations" className="hover:text-emerald-700 transition-colors">Recommendations</Link>
